@@ -1,0 +1,236 @@
+---
+title: "Loom Memory"
+description: "LoomMemoryService adds memory recall and finalized-turn capture to Pipecat text pipelines using your operator-managed Loom deployment."
+---
+
+import { CommunityMaintained } from "/snippets/community-maintained.mdx";
+
+<CommunityMaintained
+  maintainer="Loom contributors"
+  maintainerUrl="https://github.com/ClickHouse/loom/graphs/contributors"
+  repo="https://github.com/ClickHouse/loom"
+/>
+
+## Overview
+
+[`LoomMemoryService`](https://github.com/ClickHouse/loom/blob/5fbc62c21a07e8d90c8425b062bae6d26916ddb5/sdk/python/loom/integrations/pipecat.py) supplies recall and finalized-turn capture processors backed by your Loom deployment.
+
+<CardGroup cols={2}>
+  <Card
+    title="Adapter Reference"
+    icon="code"
+    href="https://github.com/ClickHouse/loom/blob/5fbc62c21a07e8d90c8425b062bae6d26916ddb5/sdk/python/loom/integrations/pipecat.py"
+  >
+    Constructor, processors, and supported frame behavior
+  </Card>
+  <Card
+    title="Single-File Text Example"
+    icon="play"
+    href="https://github.com/ClickHouse/loom/blob/5fbc62c21a07e8d90c8425b062bae6d26916ddb5/sdk/python/examples/pipecat_text_memory.py"
+  >
+    Native text turn with a fixed reply and context returned for inspection
+  </Card>
+  <Card
+    title="Loom Integration Guide"
+    icon="book"
+    href="https://github.com/ClickHouse/loom/blob/5fbc62c21a07e8d90c8425b062bae6d26916ddb5/docs/features/integrations/frameworks.md#pipecat"
+  >
+    Configuration, processor placement, and session-family requirements
+  </Card>
+</CardGroup>
+
+See the [integration README](https://github.com/ClickHouse/loom/blob/5fbc62c21a07e8d90c8425b062bae6d26916ddb5/sdk/python/examples/pipecat/README.md)
+for installation, pipeline placement and application requirements, and the
+[integration changelog](https://github.com/ClickHouse/loom/blob/5fbc62c21a07e8d90c8425b062bae6d26916ddb5/sdk/python/examples/pipecat/CHANGELOG.md)
+for source history.
+
+## Installation
+
+Install the Loom Python SDK from the source revision used by the text check:
+
+```bash
+uv add "clickhouse-loom[pipecat] @ git+https://github.com/ClickHouse/loom@3c9ae8e1dde82685ee0e27bfe29b1c8d66cb956f#subdirectory=sdk/python"
+```
+
+The hosted check installs this SDK fixture. Its recorder and copied native check
+come from a later source revision. The linked adapter and example are identical
+to the fixture, but this does not qualify the rest of that later SDK.
+
+## Prerequisites
+
+Use a reachable Loom deployment and an operator-issued token with access to the
+memory namespace your application needs. The adapter adds no local memory store.
+
+Your application supplies its existing trusted `SessionProtection` family before
+constructing the service and reopens the same family on restore. The linked
+example opens a pointer file supplied by the application; it does not create or
+repair a family. Pointer metadata is application authority and must not come from
+model output. Native user and conversation identifiers provide routing, not
+protection authority.
+
+The text example uses a fixed reply without a Pipecat audio or model provider.
+Loom can still use its configured embedding and extraction providers, with their
+credentials and costs.
+
+### Required Environment Variables
+
+The linked example's CLI reads these application-provided values:
+
+| Variable                    | Purpose                                                  |
+| --------------------------- | -------------------------------------------------------- |
+| `LOOM_BASE_URL`             | URL of your Loom deployment                              |
+| `LOOM_API_KEY`              | Scoped Loom token, supplied through your secret workflow |
+| `LOOM_ORG`                  | Token's organization                                     |
+| `LOOM_NAMESPACE`            | Memory namespace the token permits                       |
+| `LOOM_AGENT`                | Application's configured Loom agent name                 |
+| `LOOM_USER_ID`              | End-user identifier for the turn                         |
+| `LOOM_CONVERSATION_ID`      | Stable conversation identifier                           |
+| `LOOM_SESSION_POINTER_FILE` | Existing trusted application pointer file                |
+
+Keep credentials and pointer metadata out of prompts, recordings, and logs.
+
+## Configuration
+
+Import the service:
+
+```python
+from loom.integrations.pipecat import LoomMemoryService
+```
+
+### LoomMemoryService
+
+<ParamField path="agent" type="Agent" required>
+  Existing asynchronous Loom client bound by your application to the
+  conversation family. Passing a `SyncAgent` raises `TypeError`.
+</ParamField>
+
+<ParamField path="user_id" type="str | None" default="None">
+  End user used for recall and extraction. If omitted, recall reads the
+  namespace memories the token permits and extraction writes shared rows. Empty
+  strings, `-`, `*`, and identifiers with surrounding whitespace raise
+  `ValueError`.
+</ParamField>
+
+<ParamField path="session_id" type="str | None" default="None">
+  Conversation identifier used to derive the extraction session together with
+  `user_id`. If omitted, the service generates an identifier for its lifetime.
+</ParamField>
+
+<ParamField path="top_k" type="int" default="5">
+  Maximum recalled memories per turn. Values outside 1–500 raise `ValueError`.
+</ParamField>
+
+<ParamField path="honour_abstain" type="bool" default="True">
+  Removes below-threshold hits and adds no memory content when Loom abstains.
+</ParamField>
+
+<ParamField path="defer" type="bool" default="True">
+  Queues extraction on the Loom server. Set `False` to wait for the extraction
+  request in the capture processor.
+</ParamField>
+
+## Usage
+
+### Place the Text Processors
+
+Save the linked single-file example as `pipecat_text_memory.py` beside your
+application. Its `CannedReply` emits the finalized-turn event used by capture.
+Pass your existing asynchronous Loom client to this pipeline factory:
+
+```python
+from loom import Agent
+from loom.integrations.pipecat import LoomMemoryService
+from pipecat.pipeline.pipeline import Pipeline
+from pipecat_text_memory import CannedReply
+
+
+def memory_pipeline(agent: Agent, user_id: str, conversation_id: str) -> Pipeline:
+    memory = LoomMemoryService(
+        agent, user_id=user_id, session_id=conversation_id, defer=False
+    )
+    return Pipeline(
+        [memory.recall_processor(), CannedReply(), memory.capture_processor()]
+    )
+```
+
+The complete example supplies `PipelineWorker` and `WorkerRunner`, queues a text
+context and an end frame, and returns the context from `run_turn` for independent
+observation. Its CLI entry point is:
+
+```bash
+python pipecat_text_memory.py
+```
+
+The hosted check invokes Python `main()` with a fresh application family and
+pointer. It does not execute this CLI command as a separate process or qualify
+restoring an existing family.
+
+For a pipeline with aggregators, place recall after the user context aggregator
+and before the LLM, and capture after the assistant aggregator. Audio and
+interruption behavior are outside the current runtime qualification.
+
+### Observe the Text Example
+
+The 35-second video shows measured process events from the hosted text check and
+labelled post-run assertions of recall and capture, followed by a reading hold.
+It is a timestamped execution visualization, not a screen recording or live API
+telemetry. The video has no audio.
+
+<video
+  controls
+  playsInline
+  aria-label="Loom and Pipecat text recall and capture check"
+>
+  <source src="/videos/pipecat-loom-ordinary-text.webm" type="video/webm" />
+  <a href="/videos/pipecat-loom-ordinary-text.webm">
+    Download the text-check video
+  </a>
+  .
+</video>
+
+## Frames
+
+### Sent to the Processors
+
+| Processor | Frame                          | Effect                                                                                                |
+| --------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Recall    | Committed `LLMContextFrame`    | Searches with the latest user text and replaces the Loom developer-memory block in the shared context |
+| Recall    | Speculative `LLMContextFrame`  | Skips recall                                                                                          |
+| Capture   | Committed `LLMContextFrame`    | Retains the context for the completed turn                                                            |
+| Capture   | `LLMContextAssistantTurnFrame` | Sends uncaptured user and assistant text from the retained context to Loom                            |
+
+The processors forward frames. Recall changes the shared context; capture
+excludes Loom's memory block and empty text from extraction. Other frames pass
+through without a Loom call.
+
+## Methods
+
+### recall_processor
+
+```python
+recall_processor() -> LoomRecallProcessor
+```
+
+Returns a recall processor that shares this service's client and configuration.
+
+### capture_processor
+
+```python
+capture_processor() -> LoomCaptureProcessor
+```
+
+Returns a capture processor that shares this service's client and configuration.
+
+## Notes
+
+- **Compatibility:** The extra targets Pipecat 1.16.x. An authenticated hosted
+  check with Pipecat 1.16.0, a real Loom `Agent`, and fake server providers
+  verified ordinary text recall in the native context and capture of two native
+  messages. Protected-family lifecycle is not qualified by that check.
+- **Memory outcomes:** A `LoomError` or automatic-capture suppression skips the
+  affected memory work while frames continue. Pipeline completion alone does
+  not prove recall or storage; check the native context and stored results
+  independently.
+- **Conversation lifetime:** Use one service per logical conversation family.
+  The service retains constructor and callback contributors across client
+  rebinding. This source contract does not declare fleet-wide privacy support.

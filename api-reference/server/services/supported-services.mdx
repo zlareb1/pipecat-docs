@@ -151,12 +151,13 @@ LLMs receive text or audio based input and output a streaming text response.
 
 Memory services can be used to store and retrieve conversations.
 
-| Service                                                        | Setup                          | Maintainer |
-| -------------------------------------------------------------- | ------------------------------ | ---------- |
-| [mem0](/api-reference/server/services/memory/mem0)             | `uv add "pipecat-ai[mem0]"`    | Pipecat    |
-| [Memcode](/api-reference/server/services/memory/memcode)       | `uv add pipecat-memcode`       | Community  |
-| [MemorySync](/api-reference/server/services/memory/memorysync) | `uv add pipecat-memorysync`    | Community  |
-| [Synap](/api-reference/server/services/memory/synap)           | `uv add maximem-synap-pipecat` | Community  |
+| Service                                                        | Setup                                                                                                                                         | Maintainer |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| [Loom](/api-reference/server/services/memory/loom)             | `uv add "clickhouse-loom[pipecat] @ git+https://github.com/ClickHouse/loom@3c9ae8e1dde82685ee0e27bfe29b1c8d66cb956f#subdirectory=sdk/python"` | Community  |
+| [mem0](/api-reference/server/services/memory/mem0)             | `uv add "pipecat-ai[mem0]"`                                                                                                                   | Pipecat    |
+| [Memcode](/api-reference/server/services/memory/memcode)       | `uv add pipecat-memcode`                                                                                                                      | Community  |
+| [MemorySync](/api-reference/server/services/memory/memorysync) | `uv add pipecat-memorysync`                                                                                                                   | Community  |
+| [Synap](/api-reference/server/services/memory/synap)           | `uv add maximem-synap-pipecat`                                                                                                                | Community  |
 
 ## Perception
 
