@@ -3143,10 +3143,6 @@
     {
       "source": "/api-reference/cli/cloud/agent",
       "destination": "/api-reference/cli/cloud/project"
-    },
-    {
-      "source": "/server/services/memory/loom",
-      "destination": "/api-reference/server/services/memory/loom"
     }
   ]
 }
