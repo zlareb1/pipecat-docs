@@ -124,12 +124,14 @@ The following `LLMUserAggregatorParams` fields predate `FilterIncompleteUserTurn
   `FilterIncompleteUserTurnStrategies(config=...)` instead.
 </ParamField>
 
+The same two fields on `LLMSettings` are deprecated since 1.7.0 and removed in 2.0.0. A settings update that sets either one warns, and installs or configures the `LLMTurnCompletionLLMExtension` (`pipecat.turns.user_stop.llm_turn_completion`) on the service. Use `FilterIncompleteUserTurnStrategies` instead.
+
 ## UserTurnCompletionConfig
 
 Use `UserTurnCompletionConfig` to customize timeouts, prompts, and instructions. Pass it to `FilterIncompleteUserTurnStrategies` via `config`:
 
 ```python
-from pipecat.turns.user_turn_completion_mixin import UserTurnCompletionConfig
+from pipecat.turns.user_turn_completion import UserTurnCompletionConfig
 from pipecat.turns.user_turn_strategies import FilterIncompleteUserTurnStrategies
 
 user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
@@ -270,7 +272,7 @@ user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
 Adjust timeouts for your use case:
 
 ```python
-from pipecat.turns.user_turn_completion_mixin import UserTurnCompletionConfig
+from pipecat.turns.user_turn_completion import UserTurnCompletionConfig
 from pipecat.turns.user_turn_strategies import FilterIncompleteUserTurnStrategies
 
 user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
@@ -291,7 +293,7 @@ user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
 Customize what the LLM says when re-engaging:
 
 ```python
-from pipecat.turns.user_turn_completion_mixin import UserTurnCompletionConfig
+from pipecat.turns.user_turn_completion import UserTurnCompletionConfig
 from pipecat.turns.user_turn_strategies import FilterIncompleteUserTurnStrategies
 
 user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
@@ -390,3 +392,4 @@ This ensures the feature doesn't break conversations if the LLM occasionally dis
 - [User Turn Strategies](/api-reference/server/utilities/turn-management/user-turn-strategies) - Configure turn detection
 - [Smart Turn Detection](/api-reference/server/utilities/turn-detection/smart-turn-overview) - AI-powered end-of-turn detection
 - [Transcriptions](/api-reference/server/utilities/turn-management/transcriptions) - Working with conversation transcripts
+- [Wait Reassurance](/api-reference/server/utilities/turn-management/wait-reassurance) - Keep the conversation from going silent during background work

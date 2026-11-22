@@ -374,7 +374,10 @@
               {
                 "group": "RTVI",
                 "root": "api-reference/standards/rtvi-standard",
-                "pages": ["api-reference/standards/rtvi/2.3.0"]
+                "pages": [
+                  "api-reference/standards/rtvi/2.4.0",
+                  "api-reference/standards/rtvi/2.3.0"
+                ]
               }
             ]
           },
@@ -431,6 +434,7 @@
                   {
                     "group": "Speech-to-Text",
                     "pages": [
+                      "api-reference/server/services/stt/aircaps",
                       "api-reference/server/services/stt/assemblyai",
                       "api-reference/server/services/stt/aws",
                       "api-reference/server/services/stt/azure",
@@ -622,6 +626,7 @@
                       "api-reference/server/services/video/akapulu",
                       "api-reference/server/services/video/anam",
                       "api-reference/server/services/video/bithuman",
+                      "api-reference/server/services/video/chatfx",
                       "api-reference/server/services/video/heygen",
                       "api-reference/server/services/video/protoface",
                       "api-reference/server/services/video/simli",
@@ -718,6 +723,7 @@
                   "api-reference/server/classifiers/hume-audio",
                   "api-reference/server/classifiers/jev",
                   "api-reference/server/classifiers/openai-decisions",
+                  "api-reference/server/classifiers/zoom-decisions",
                   "api-reference/server/classifiers/llm"
                 ]
               },
@@ -826,7 +832,8 @@
                       "api-reference/server/utilities/turn-detection/smart-turn-overview",
                       "api-reference/server/utilities/turn-detection/krisp-viva-turn",
                       "api-reference/server/utilities/turn-detection/turn-1-mini",
-                      "api-reference/server/utilities/turn-detection/alkove-turn"
+                      "api-reference/server/utilities/turn-detection/alkove-turn",
+                      "api-reference/server/utilities/turn-detection/marimba-turn"
                     ]
                   },
                   {
@@ -848,6 +855,7 @@
                       "api-reference/server/utilities/turn-management/user-turn-strategies",
                       "api-reference/server/utilities/turn-management/user-mute-strategies",
                       "api-reference/server/utilities/turn-management/filter-incomplete-turns",
+                      "api-reference/server/utilities/turn-management/wait-reassurance",
                       "api-reference/server/utilities/turn-management/turn-events",
                       "api-reference/server/utilities/turn-management/transcriptions",
                       "api-reference/server/utilities/turn-management/external-turn-management"
@@ -1206,7 +1214,7 @@
   "redirects": [
     {
       "source": "/api-reference/standards/rtvi/latest",
-      "destination": "/api-reference/standards/rtvi/2.3.0"
+      "destination": "/api-reference/standards/rtvi/2.4.0"
     },
     {
       "source": "/server/services/tts/pyai",
